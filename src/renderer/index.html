@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Kira Switch</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="titlebar">
+    <div class="brand-mark" aria-hidden="true">
+      <span class="brand-card brand-card-back"></span>
+      <span class="brand-card brand-card-front"><i></i><i></i></span>
+    </div>
+    <strong>Kira Switch</strong>
+    <span class="titlebar-subtitle">角色卡注入中心</span>
+    <div class="titlebar-drag"></div>
+    <button class="icon-button title-action" id="themeButton" title="切换主题" aria-label="切换主题">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42M7.06 16.94l-1.42 1.42"/><circle cx="12" cy="12" r="4"/></svg>
+    </button>
+  </div>
+
+  <div class="app-shell">
+    <header class="control-bar">
+      <div class="client-switcher" id="clientSwitcher" aria-label="目标客户端"></div>
+      <div class="control-spacer"></div>
+      <nav class="view-tabs" aria-label="页面">
+        <button class="view-tab active" data-view="cards">角色卡</button>
+        <button class="view-tab" data-view="history">历史</button>
+        <button class="view-tab" data-view="settings">设置</button>
+      </nav>
+      <button class="primary-button" id="importButton">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        导入角色卡
+      </button>
+    </header>
+
+    <main class="main-content">
+      <section class="view active" id="cardsView">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow" id="targetEyebrow">当前目标</div>
+            <h1 id="pageTitle">角色卡</h1>
+            <p id="pageSubtitle">选择角色卡并注入到目标客户端。</p>
+          </div>
+          <label class="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <input id="searchInput" type="search" placeholder="搜索角色卡" autocomplete="off">
+            <kbd>Ctrl F</kbd>
+          </label>
+        </div>
+
+        <div class="target-strip" id="targetStrip"></div>
+
+        <div class="workspace-grid">
+          <section class="library-panel panel">
+            <div class="panel-heading">
+              <div>
+                <h2>角色卡库</h2>
+                <span id="cardCount">0 张角色卡</span>
+              </div>
+              <div class="segmented" id="filterSegment">
+                <button class="active" data-filter="all">全部</button>
+                <button data-filter="active">已启用</button>
+              </div>
+            </div>
+            <div class="card-list" id="cardList"></div>
+          </section>
+
+          <aside class="inspector-panel panel" id="inspector"></aside>
+        </div>
+      </section>
+
+      <section class="view" id="historyView">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">安全与回滚</div>
+            <h1>操作历史</h1>
+            <p>每次写入前都会保存快照，可把配置恢复到启用前。</p>
+          </div>
+        </div>
+        <div class="history-panel panel">
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </section>
+
+      <section class="view" id="settingsView">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">偏好与路径</div>
+            <h1>设置</h1>
+            <p>配置宏替换、提示词长度和各客户端的实际注入文件。</p>
+          </div>
+          <button class="primary-button" id="saveSettingsButton">保存设置</button>
+        </div>
+        <div class="settings-layout">
+          <section class="settings-card panel">
+            <div class="settings-section-title">
+              <span class="settings-icon purple">Aa</span>
+              <div><h2>角色卡转换</h2><p>决定如何把 SillyTavern 字段编译为代理指令。</p></div>
+            </div>
+            <label class="field-label" for="userNameInput">{{user}} 显示名称</label>
+            <input class="text-input" id="userNameInput" maxlength="80" placeholder="用户">
+            <label class="field-label" for="promptModeSelect">提示词长度</label>
+            <select class="text-input" id="promptModeSelect">
+              <option value="concise">精简 · 最多 8,000 字符</option>
+              <option value="standard">标准 · 最多 18,000 字符</option>
+              <option value="full">完整 · 最多 50,000 字符</option>
+            </select>
+            <p class="field-help">标准模式会保留角色身份、性格、场景、系统指令和可容纳的世界书；完整模式还会加入对话示例与备选开场。</p>
+          </section>
+          <section class="settings-card panel paths-card">
+            <div class="settings-section-title">
+              <span class="settings-icon green">
+                <svg viewBox="0 0 24 24"><path d="M3 7.5h7l2 2h9v9.5H3z"/></svg>
+              </span>
+              <div><h2>注入路径</h2><p>默认值来自各客户端官方约定，也可改到自定义工作区。</p></div>
+            </div>
+            <div id="pathSettings"></div>
+          </section>
+          <section class="settings-card panel about-card">
+            <div class="settings-section-title">
+              <span class="settings-icon amber">PS</span>
+              <div><h2>关于 Kira Switch</h2><p id="versionText">KiraChat 系列 · 本地优先的角色卡注入工具</p></div>
+            </div>
+            <ul class="assurance-list">
+              <li><span>✓</span> 导入和转换全程在本机完成</li>
+              <li><span>✓</span> 只写入带边界标记的受管区块</li>
+              <li><span>✓</span> 写入前自动备份，支持一键回滚</li>
+            </ul>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="importModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+      <button class="icon-button modal-close" data-close-modal aria-label="关闭">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 6.5h6l2 2h8v10H4z"/><path d="M12 11v5m-2.5-2.5L12 11l2.5 2.5"/></svg>
+      </div>
+      <h2 id="importModalTitle">导入 SillyTavern 角色卡</h2>
+      <p>支持 Character Card V1 / V2 / V3、PNG 元数据与 CHARX。</p>
+      <button class="drop-zone" id="dropZone">
+        <span class="drop-illustration">
+          <svg viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4"/><path d="M5 14v5h14v-5"/></svg>
+        </span>
+        <strong>拖放文件到这里</strong>
+        <span>或点击选择 .json、.png、.charx 文件</span>
+      </button>
+      <div class="security-note">
+        <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.8 2.8 8.1 7 10 4.2-1.9 7-5.2 7-10V6z"/><path d="m9.5 12 1.7 1.7 3.5-4"/></svg>
+        <span>角色卡会进入高优先级上下文。仅导入你信任的文件，并先检查预览。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmModal" aria-hidden="true">
+    <div class="modal confirm-modal" role="dialog" aria-modal="true">
+      <div class="modal-icon warning">
+        <svg viewBox="0 0 24 24"><path d="M12 3 2.8 20h18.4z"/><path d="M12 9v5m0 3h.01"/></svg>
+      </div>
+      <h2 id="confirmTitle">确认操作</h2>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="confirmCancel">取消</button>
+        <button class="danger-button" id="confirmAccept">继续</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

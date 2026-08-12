@@ -1,0 +1,54 @@
+{
+  "name": "kira-switch",
+  "productName": "Kira Switch",
+  "version": "1.0.0",
+  "description": "KiraChat companion for injecting SillyTavern character cards into Codex, Claude Code, Hermes, OpenClaw and OpenCode.",
+  "main": "src/main.js",
+  "author": "KiraChat Contributors",
+  "homepage": "https://github.com/liangbannianikun-cmd/kirachat/tree/kira-switch/kira-switch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liangbannianikun-cmd/kirachat.git",
+    "directory": "kira-switch"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.js",
+    "smoke": "node test/electron-smoke.js",
+    "smoke:e2e": "node test/end-to-end-smoke.js",
+    "dist:win": "electron-builder --win portable zip"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.0"
+  },
+  "devDependencies": {
+    "electron": "^39.8.10",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "app.kirachat.kiraswitch",
+    "productName": "Kira Switch",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "package.json",
+      "README.md"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "portable",
+        "zip"
+      ],
+      "artifactName": "Kira-Switch-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Kira-Switch-${version}-Windows-Portable.${ext}"
+    }
+  }
+}
