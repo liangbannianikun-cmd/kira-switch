@@ -1,4 +1,22 @@
-# Kira Switch — SillyTavern 角色卡注入器
+<p align="center">
+  <img src="build/icon.png" width="112" alt="Kira Switch 图标">
+</p>
+
+<h1 align="center">Kira Switch</h1>
+
+<p align="center"><strong>面向 AI 编程工具的 SillyTavern 角色卡安全注入器。</strong></p>
+
+<p align="center">
+  <a href="https://github.com/liangbannianikun-cmd/kira-switch/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/Kira%20Switch-v1.0.0-7C3AED" alt="Kira Switch v1.0.0"></a>
+  <img src="https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows&amp;logoColor=white" alt="Windows 10/11">
+  <img src="https://img.shields.io/badge/License-MIT-22C55E" alt="MIT License">
+</p>
+
+<p align="center">
+  <a href="https://github.com/liangbannianikun-cmd/kira-switch/releases/download/v1.0.0/Kira-Switch-1.0.0-Windows-Portable.exe"><strong>下载 Windows 便携版</strong></a>
+  ·
+  <a href="https://github.com/liangbannianikun-cmd/kira-switch/releases/tag/v1.0.0">版本与安装包</a>
+</p>
 
 **这是什么：** 一款 Windows 桌面工具。导入一张 SillyTavern JSON / PNG / CHARX 角色卡，就能让 **Codex、Claude Code、Hermes、OpenClaw 和 OpenCode** 使用同一个角色。
 
@@ -6,7 +24,7 @@
 
 ## 30 秒安装
 
-1. 打开 [Kira Switch v1.0.0](https://github.com/liangbannianikun-cmd/kirachat/releases/tag/kira-switch-v1.0.0)。
+1. 打开 [Kira Switch v1.0.0](https://github.com/liangbannianikun-cmd/kira-switch/releases/tag/v1.0.0)。
 2. 下载 `Kira-Switch-1.0.0-Windows-Portable.exe`。
 3. 双击运行，导入角色卡并选择目标客户端；无需安装，也无需另外配置 Node.js。
 
@@ -80,9 +98,9 @@ npm.cmd run dist:win
 
 角色库、设置和操作记录默认保存在 `%APPDATA%\Kira Switch\state.json`，备份位于同目录的 `backups/`。Windows Portable EXE 是免安装程序，但用户数据仍使用上述目录。
 
-## 与 KiraChat 的关系
+## 独立项目说明
 
-Kira Switch 是 `kirachat` 仓库 `kira-switch` 分支中的独立桌面工具，与 KiraChat 共用 SillyTavern Character Card 兼容方向，但不会自动同步 KiraChat 聊天记录、账号或密钥。
+Kira Switch 现在由独立仓库、独立 Issue 和独立 Release 维护。它与 [KiraChat](https://github.com/liangbannianikun-cmd/kirachat) 都兼容 SillyTavern Character Card，但两者没有运行时依赖，也不会同步聊天记录、账户或密钥。
 
 ## License
 

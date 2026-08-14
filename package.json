@@ -2,14 +2,13 @@
   "name": "kira-switch",
   "productName": "Kira Switch",
   "version": "1.0.0",
-  "description": "KiraChat companion for injecting SillyTavern character cards into Codex, Claude Code, Hermes, OpenClaw and OpenCode.",
+  "description": "Apply SillyTavern character cards to Codex, Claude Code, Hermes, OpenClaw and OpenCode without overwriting existing instructions.",
   "main": "src/main.js",
-  "author": "KiraChat Contributors",
-  "homepage": "https://github.com/liangbannianikun-cmd/kirachat/tree/kira-switch/kira-switch",
+  "author": "Kira Switch Contributors",
+  "homepage": "https://github.com/liangbannianikun-cmd/kira-switch",
   "repository": {
     "type": "git",
-    "url": "https://github.com/liangbannianikun-cmd/kirachat.git",
-    "directory": "kira-switch"
+    "url": "https://github.com/liangbannianikun-cmd/kira-switch.git"
   },
   "license": "MIT",
   "scripts": {
