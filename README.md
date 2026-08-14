@@ -71,7 +71,7 @@ OpenClaw 多智能体或自定义工作区需要在“设置 → 注入路径”
 
 ## 本地开发
 
-需要 Node.js 20 或更新版本。
+需要 Node.js 22.12 或更新版本。
 
 ```powershell
 npm.cmd install

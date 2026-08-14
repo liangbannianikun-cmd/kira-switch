@@ -11,9 +11,12 @@
     "url": "https://github.com/liangbannianikun-cmd/kira-switch.git"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/*.test.js",
+    "test": "node --test test/core.test.js",
     "smoke": "node test/electron-smoke.js",
     "smoke:e2e": "node test/end-to-end-smoke.js",
     "dist:win": "electron-builder --win portable zip"
