@@ -7,11 +7,14 @@ const executable = path.resolve(process.argv[2] || '');
 if (!fs.existsSync(executable)) throw new Error(`Executable not found: ${executable}`);
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kira-switch-package-'));
 const screenshotPath = path.join(tempRoot, 'packaged.png');
+const homePath = path.join(tempRoot, 'home');
+fs.mkdirSync(path.join(homePath, '.hermes'), { recursive: true });
+fs.writeFileSync(path.join(homePath, '.hermes', 'config.yaml'), 'model:\n  default: deepseek-v4-pro\n  provider: deepseek\n', 'utf8');
 const child = spawn(executable, [], {
   windowsHide: true,
   env: {
     ...process.env,
-    KIRA_SWITCH_HOME: path.join(tempRoot, 'home'),
+    KIRA_SWITCH_HOME: homePath,
     KIRA_SWITCH_USER_DATA: path.join(tempRoot, 'user-data'),
     KIRA_SWITCH_DEMO: '1',
     KIRA_SWITCH_SCREENSHOT_PATH: screenshotPath,

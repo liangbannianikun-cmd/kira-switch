@@ -4,7 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
 const AdmZip = require('adm-zip');
-const { createAdapters } = require('./lib/adapters');
+const { createAdapters, inspectDeepSeekHermes } = require('./lib/adapters');
 const { normalizeCard, parsePngCard, compilePersona } = require('./lib/card');
 const { applyManagedBlock, disableManagedBlock, hasManagedBlock } = require('./lib/injector');
 
@@ -142,6 +142,18 @@ function commandExists(command) {
 async function targetStatuses(state) {
   const adapters = currentAdapters();
   return Promise.all(adapters.map(async (adapter) => {
+    const deepSeekHermes = adapter.id === 'hermes'
+      ? inspectDeepSeekHermes(adapter.hermesHome)
+      : null;
+    const displayAdapter = deepSeekHermes?.configured
+      ? {
+          ...adapter,
+          name: 'DeepSeek Hermes',
+          shortName: 'DS',
+          accent: '#4d6bfe',
+          note: '已检测到 DeepSeek provider；角色仅写入 SOUL.md，不提取、存储或修改 API Key、模型和工具配置。'
+        }
+      : adapter;
     const targetPath = resolveUserPath(state.settings.paths[adapter.id] || adapter.path);
     let exists = false;
     let managed = false;
@@ -156,14 +168,15 @@ async function targetStatuses(state) {
     } catch (_) {}
     const commandDetected = await commandExists(adapter.command);
     return {
-      ...adapter,
+      ...displayAdapter,
       path: targetPath,
       exists,
       managed,
       size,
       modifiedAt,
-      detected: commandDetected || exists,
-      commandDetected
+      detected: commandDetected || exists || Boolean(deepSeekHermes?.configExists),
+      commandDetected,
+      deepseekConfigured: Boolean(deepSeekHermes?.configured)
     };
   }));
 }
@@ -412,6 +425,23 @@ ipcMain.handle('shell:show-file', (_, targetPath) => {
   else shell.openPath(path.dirname(resolved));
 });
 
+async function captureWindowPage(window, bounds) {
+  let lastError;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      const image = await window.webContents.capturePage(
+        attempt === 0 ? { x: 0, y: 0, width: bounds.width, height: bounds.height } : undefined
+      );
+      if (!image.isEmpty()) return image;
+      lastError = new Error('Electron capturePage returned an empty image');
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 700));
+  }
+  throw lastError || new Error('Electron capturePage failed');
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1180,
@@ -443,13 +473,19 @@ function createWindow() {
     mainWindow.webContents.once('did-finish-load', () => {
       setTimeout(async () => {
         try {
-          const payload = JSON.parse(e2ePayload);
-          const result = await mainWindow.webContents.executeJavaScript(
-            `window.personaSwitch.applyPersona(${JSON.stringify(payload)})`
-          );
+          const parsedPayload = JSON.parse(e2ePayload);
+          const payloads = Array.isArray(parsedPayload) ? parsedPayload : [parsedPayload];
+          const results = [];
+          for (const payload of payloads) {
+            results.push(await mainWindow.webContents.executeJavaScript(
+              `window.personaSwitch.applyPersona(${JSON.stringify(payload)})`
+            ));
+          }
+          const finalSnapshot = results.at(-1)?.snapshot;
           fs.writeFileSync(e2eResult, JSON.stringify({
-            ok: Boolean(result?.snapshot?.active?.[payload.clientId]),
-            charCount: result?.compiled?.charCount || 0
+            ok: payloads.every((payload, index) => Boolean(results[index]?.snapshot?.active?.[payload.clientId])),
+            charCount: Math.min(...results.map((result) => result?.compiled?.charCount || 0)),
+            targets: finalSnapshot?.targets || []
           }), 'utf8');
         } catch (error) {
           fs.writeFileSync(e2eResult, JSON.stringify({ ok: false, error: error.message }), 'utf8');
@@ -465,13 +501,9 @@ function createWindow() {
         try {
           mainWindow.show();
           mainWindow.focus();
+          await new Promise((resolve) => setTimeout(resolve, 500));
           const bounds = mainWindow.getContentBounds();
-          let image = await mainWindow.webContents.capturePage({ x: 0, y: 0, width: bounds.width, height: bounds.height });
-          if (image.isEmpty()) {
-            await new Promise((resolve) => setTimeout(resolve, 700));
-            image = await mainWindow.webContents.capturePage();
-          }
-          if (image.isEmpty()) throw new Error('Electron capturePage returned an empty image');
+          const image = await captureWindowPage(mainWindow, bounds);
           fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
           fs.writeFileSync(screenshotPath, image.toPNG());
         } catch (error) {

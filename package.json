@@ -1,8 +1,8 @@
 {
   "name": "kira-switch",
   "productName": "Kira Switch",
-  "version": "1.0.0",
-  "description": "Apply SillyTavern character cards to Codex, Claude Code, Hermes, OpenClaw and OpenCode without overwriting existing instructions.",
+  "version": "1.1.0",
+  "description": "Apply SillyTavern character cards to Codex, Claude Code, DeepSeek Hermes, OpenClaw and OpenCode without overwriting existing instructions.",
   "main": "src/main.js",
   "author": "Kira Switch Contributors",
   "homepage": "https://github.com/liangbannianikun-cmd/kira-switch",
@@ -25,7 +25,7 @@
     "adm-zip": "^0.6.0"
   },
   "devDependencies": {
-    "electron": "^39.8.10",
+    "electron": "^43.4.0",
     "electron-builder": "^26.0.12"
   },
   "build": {

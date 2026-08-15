@@ -10,8 +10,13 @@ const homePath = path.join(tempRoot, 'home');
 const userData = path.join(tempRoot, 'user-data');
 const resultPath = path.join(tempRoot, 'result.json');
 const targetPath = path.join(homePath, '.codex', 'AGENTS.md');
+const hermesPath = path.join(homePath, '.hermes', 'SOUL.md');
 fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 fs.writeFileSync(targetPath, '# 用户原有规则\n\n- 保留这条规则\n', 'utf8');
+fs.mkdirSync(path.dirname(hermesPath), { recursive: true });
+fs.writeFileSync(hermesPath, '# Hermes 原有身份\n\n- 保留这条身份规则\n', 'utf8');
+fs.writeFileSync(path.join(homePath, '.hermes', 'config.yaml'), 'model:\n  default: deepseek-v4-pro\n  provider: deepseek\n  base_url: https://api.deepseek.com\n', 'utf8');
+fs.writeFileSync(path.join(homePath, '.hermes', '.env'), 'DEEPSEEK_API_KEY=untouched-test-secret\n', 'utf8');
 
 const preloadState = {
   version: 1,
@@ -29,7 +34,7 @@ const preloadState = {
     paths: {
       codex: targetPath,
       claude: path.join(homePath, '.claude', 'CLAUDE.md'),
-      hermes: path.join(homePath, '.hermes', 'SOUL.md'),
+      hermes: hermesPath,
       openclaw: path.join(homePath, '.openclaw', 'workspace', 'SOUL.md'),
       opencode: path.join(homePath, '.config', 'opencode', 'AGENTS.md')
     }
@@ -45,7 +50,10 @@ const child = spawn(electronPath, [projectRoot], {
     ...process.env,
     KIRA_SWITCH_HOME: homePath,
     KIRA_SWITCH_USER_DATA: userData,
-    KIRA_SWITCH_E2E_PAYLOAD: JSON.stringify({ cardId: 'smoke-card', clientId: 'codex', mode: 'standard', userName: '验收用户' }),
+    KIRA_SWITCH_E2E_PAYLOAD: JSON.stringify([
+      { cardId: 'smoke-card', clientId: 'codex', mode: 'standard', userName: '验收用户' },
+      { cardId: 'smoke-card', clientId: 'hermes', mode: 'standard', userName: '验收用户' }
+    ]),
     KIRA_SWITCH_E2E_RESULT: resultPath,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
   },
@@ -65,14 +73,22 @@ child.on('exit', (code) => {
   try {
     const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
     const target = fs.readFileSync(targetPath, 'utf8');
+    const hermesTarget = fs.readFileSync(hermesPath, 'utf8');
+    const hermesEnv = fs.readFileSync(path.join(homePath, '.hermes', '.env'), 'utf8');
     const stored = JSON.parse(fs.readFileSync(path.join(userData, 'state.json'), 'utf8'));
-    const backups = fs.readdirSync(path.join(userData, 'backups', 'codex'));
+    const codexBackups = fs.readdirSync(path.join(userData, 'backups', 'codex'));
+    const hermesBackups = fs.readdirSync(path.join(userData, 'backups', 'hermes'));
+    const hermesStatus = result.targets.find((item) => item.id === 'hermes');
     if (code !== 0 || !result.ok || result.charCount < 100 || !target.includes('保留这条规则') ||
         !target.includes('KIRA-SWITCH:BEGIN') || !target.includes('激活角色：测试角色') ||
-        stored.active.codex?.cardId !== 'smoke-card' || backups.length < 1) {
-      throw new Error(`E2E assertions failed: ${JSON.stringify({ code, result, backups: backups.length })}`);
+        !hermesTarget.includes('保留这条身份规则') || !hermesTarget.includes('KIRA-SWITCH:BEGIN') ||
+        stored.active.codex?.cardId !== 'smoke-card' || stored.active.hermes?.cardId !== 'smoke-card' ||
+        hermesStatus?.name !== 'DeepSeek Hermes' || !hermesStatus?.deepseekConfigured ||
+        hermesEnv !== 'DEEPSEEK_API_KEY=untouched-test-secret\n' ||
+        codexBackups.length < 1 || hermesBackups.length < 1) {
+      throw new Error(`E2E assertions failed: ${JSON.stringify({ code, result, codexBackups: codexBackups.length, hermesBackups: hermesBackups.length })}`);
     }
-    process.stdout.write(`${targetPath}\n`);
+    process.stdout.write(`${targetPath}\n${hermesPath}\n`);
   } catch (error) {
     process.stderr.write(`${stderr}${error.stack}\n`);
     process.exitCode = 1;

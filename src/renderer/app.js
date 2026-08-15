@@ -118,13 +118,14 @@ function renderTargetStrip() {
     : item.detected
       ? '<span class="badge success">已检测</span>'
       : '<span class="badge muted">未检测</span>';
+  const providerStatus = item.deepseekConfigured ? '<span class="badge accent">DeepSeek provider</span>' : '';
   ui.targetEyebrow.textContent = '当前目标';
   ui.pageTitle.textContent = `${item.name} 角色卡`;
   ui.pageSubtitle.textContent = item.note;
   ui.targetStrip.innerHTML = `
     <span class="target-logo" style="--client-accent:${item.accent}">${escapeHtml(item.shortName)}</span>
     <div class="target-meta">
-      <strong>${escapeHtml(item.name)} ${status}</strong>
+      <strong>${escapeHtml(item.name)} ${status} ${providerStatus}</strong>
       <p>${escapeHtml(item.fileLabel)} · ${escapeHtml(item.path)}</p>
     </div>
     <div class="target-actions">

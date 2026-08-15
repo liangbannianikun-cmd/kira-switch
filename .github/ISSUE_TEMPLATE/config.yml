@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: Download Kira Switch / 下载安装包
-    url: https://github.com/liangbannianikun-cmd/kira-switch/releases/tag/v1.0.0
+    url: https://github.com/liangbannianikun-cmd/kira-switch/releases/latest
     about: Download the current Windows portable build or ZIP package.
   - name: Private security report / 私密安全报告
     url: https://github.com/liangbannianikun-cmd/kira-switch/security/advisories/new
