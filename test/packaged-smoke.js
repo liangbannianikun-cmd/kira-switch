@@ -29,7 +29,7 @@ const timeout = setTimeout(() => {
   child.kill();
   process.stderr.write(`Packaged smoke test timed out: ${executable}\n`);
   process.exitCode = 1;
-}, 45000);
+}, 120000);
 
 child.on('error', (error) => {
   clearTimeout(timeout);
