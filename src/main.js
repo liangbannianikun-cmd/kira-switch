@@ -4,7 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
 const AdmZip = require('adm-zip');
-const { createAdapters, inspectDeepSeekHermes } = require('./lib/adapters');
+const { createAdapters } = require('./lib/adapters');
 const { normalizeCard, parsePngCard, compilePersona } = require('./lib/card');
 const { applyManagedBlock, disableManagedBlock, hasManagedBlock } = require('./lib/injector');
 
@@ -142,18 +142,6 @@ function commandExists(command) {
 async function targetStatuses(state) {
   const adapters = currentAdapters();
   return Promise.all(adapters.map(async (adapter) => {
-    const deepSeekHermes = adapter.id === 'hermes'
-      ? inspectDeepSeekHermes(adapter.hermesHome)
-      : null;
-    const displayAdapter = deepSeekHermes?.configured
-      ? {
-          ...adapter,
-          name: 'DeepSeek Hermes',
-          shortName: 'DS',
-          accent: '#4d6bfe',
-          note: '已检测到 DeepSeek provider；角色仅写入 SOUL.md，不提取、存储或修改 API Key、模型和工具配置。'
-        }
-      : adapter;
     const targetPath = resolveUserPath(state.settings.paths[adapter.id] || adapter.path);
     let exists = false;
     let managed = false;
@@ -166,17 +154,20 @@ async function targetStatuses(state) {
       modifiedAt = exists ? stat.mtime.toISOString() : null;
       managed = exists ? hasManagedBlock(readTarget(targetPath)) : false;
     } catch (_) {}
+    let supportingPathDetected = false;
+    if (adapter.detectPath) {
+      try { supportingPathDetected = fs.statSync(adapter.detectPath).isDirectory(); } catch (_) {}
+    }
     const commandDetected = await commandExists(adapter.command);
     return {
-      ...displayAdapter,
+      ...adapter,
       path: targetPath,
       exists,
       managed,
       size,
       modifiedAt,
-      detected: commandDetected || exists || Boolean(deepSeekHermes?.configExists),
-      commandDetected,
-      deepseekConfigured: Boolean(deepSeekHermes?.configured)
+      detected: commandDetected || exists || supportingPathDetected,
+      commandDetected
     };
   }));
 }

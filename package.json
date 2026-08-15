@@ -2,7 +2,7 @@
   "name": "kira-switch",
   "productName": "Kira Switch",
   "version": "1.1.0",
-  "description": "Apply SillyTavern character cards to Codex, Claude Code, DeepSeek Hermes, OpenClaw and OpenCode without overwriting existing instructions.",
+  "description": "Apply SillyTavern character cards to Codex, Claude Code, DeepSeek Harness, Hermes, OpenClaw and OpenCode without overwriting existing instructions.",
   "main": "src/main.js",
   "author": "Kira Switch Contributors",
   "homepage": "https://github.com/liangbannianikun-cmd/kira-switch",

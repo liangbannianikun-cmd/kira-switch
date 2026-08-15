@@ -8,8 +8,8 @@ const electronPath = require('electron');
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kira-switch-smoke-'));
 const screenshotPath = process.env.KIRA_SWITCH_SMOKE_SCREENSHOT || path.join(tempRoot, 'kira-switch-smoke.png');
 const homePath = path.join(tempRoot, 'home');
-fs.mkdirSync(path.join(homePath, '.hermes'), { recursive: true });
-fs.writeFileSync(path.join(homePath, '.hermes', 'config.yaml'), 'model:\n  default: deepseek-v4-pro\n  provider: deepseek\n', 'utf8');
+fs.mkdirSync(path.join(homePath, '.dsh'), { recursive: true });
+fs.writeFileSync(path.join(homePath, '.dsh', 'AGENTS.md'), '# DeepSeek Harness 全局规则\n', 'utf8');
 
 const child = spawn(electronPath, [projectRoot], {
   cwd: projectRoot,

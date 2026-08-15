@@ -8,8 +8,8 @@ if (!fs.existsSync(executable)) throw new Error(`Executable not found: ${executa
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kira-switch-package-'));
 const screenshotPath = path.join(tempRoot, 'packaged.png');
 const homePath = path.join(tempRoot, 'home');
-fs.mkdirSync(path.join(homePath, '.hermes'), { recursive: true });
-fs.writeFileSync(path.join(homePath, '.hermes', 'config.yaml'), 'model:\n  default: deepseek-v4-pro\n  provider: deepseek\n', 'utf8');
+fs.mkdirSync(path.join(homePath, '.dsh'), { recursive: true });
+fs.writeFileSync(path.join(homePath, '.dsh', 'AGENTS.md'), '# DeepSeek Harness 全局规则\n', 'utf8');
 const child = spawn(executable, [], {
   windowsHide: true,
   env: {

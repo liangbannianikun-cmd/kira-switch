@@ -28,7 +28,7 @@ jobs:
         run: npm audit
       - name: Run Electron render smoke test
         run: npm run smoke
-      - name: Run Codex and DeepSeek Hermes injection smoke test
+      - name: Run Codex and DeepSeek Harness injection smoke test
         run: npm run smoke:e2e
       - name: Build Windows packages
         run: npm run dist:win

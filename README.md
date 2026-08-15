@@ -18,7 +18,7 @@
   <a href="https://github.com/liangbannianikun-cmd/kira-switch/releases/tag/v1.1.0">版本与安装包</a>
 </p>
 
-**这是什么：** 一款 Windows 桌面工具。导入一张 SillyTavern JSON / PNG / CHARX 角色卡，就能让 **Codex、Claude Code、DeepSeek Hermes、OpenClaw 和 OpenCode** 使用同一个角色。
+**这是什么：** 一款 Windows 桌面工具。导入一张 SillyTavern JSON / PNG / CHARX 角色卡，就能让 **Codex、Claude Code、DeepSeek Harness、Hermes、OpenClaw 和 OpenCode** 使用同一个角色。
 
 **解决什么：** 这些 AI 编程工具的提示词入口各不相同，手工切换容易覆盖原配置。Kira Switch 统一转换角色卡，只管理自己的标记区块，并为每次写入自动备份。
 
@@ -41,7 +41,7 @@
 - 解析角色描述、性格、场景、开场、示例对话、系统指令、备选开场和世界书。
 - 替换 `{{char}}`、`{{user}}`、`<char>`、`<user>` 宏。
 - 提供精简、标准和完整三种提示词长度。
-- 为五个目标分别启用、停用和切换角色；自动识别使用 DeepSeek provider 的 Hermes Agent。
+- 为六个目标分别启用、停用和切换角色，包括 DeepSeek 官方的 DeepSeek Harness。
 - 写入前自动备份；历史页面可恢复到启用前快照。
 - 只修改 `KIRA-SWITCH` 受管区块，不覆盖已有规则或软件内置系统提示词。
 - 能识别并迁移旧版 `PERSONA-SWITCH` 受管区块。
@@ -53,22 +53,23 @@
 | --- | --- | --- |
 | Codex | `~/.codex/AGENTS.md` | 全局 |
 | Claude Code | `~/.claude/CLAUDE.md` | 用户全局 |
-| DeepSeek Hermes / Hermes Agent | `~/.hermes/SOUL.md` 或 `$HERMES_HOME/SOUL.md` | 主身份 |
+| DeepSeek Harness | `~/.dsh/AGENTS.md` 或 `$DSH_HOME/AGENTS.md` | 用户全局 |
+| Hermes | `~/.hermes/SOUL.md` 或 `$HERMES_HOME/SOUL.md` | 主身份 |
 | OpenClaw | `~/.openclaw/workspace/SOUL.md` | 默认工作区人格 |
 | OpenCode | `~/.config/opencode/AGENTS.md` | 全局 |
 
 这些文件属于各客户端公开支持的持久指令或人格入口。Kira Switch 不修改模型、登录凭据、API 密钥、网络代理或工具权限。
 
-## DeepSeek Hermes 支持
+## DeepSeek Harness 支持
 
-DeepSeek 官方文档所说的 Hermes 是由 Nous Research 开发的第三方 **Hermes Agent**，通过 DeepSeek provider 使用 DeepSeek API。它与普通 Hermes 共用同一个人格入口，因此 Kira Switch 不会创建第二份冲突配置。
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 是 DeepSeek AI 官方开发的开源 Agent Harness，命令名为 `dsh`。当前仍处于 Developer Preview，官方明确提示可能发生破坏性兼容变更；Kira Switch v1.1.0 按当前公开的 agent-instructions 约定接入。
 
-1. 按 [DeepSeek 官方 Hermes 集成说明](https://api-docs.deepseek.com/quick_start/agent_integrations/hermes) 安装 Hermes，运行 `hermes setup`。
-2. Provider 选择 `DeepSeek`，按官方向导配置 Base URL、模型和 API Key。
-3. 打开 Kira Switch。检测到 `~/.hermes/config.yaml` 中的 DeepSeek provider/model，或 `.env` 中声明了 `DEEPSEEK_API_KEY` 后，目标会显示为 **DeepSeek Hermes**。
-4. 导入角色卡并注入；Kira Switch 只修改 `SOUL.md` 中的 `KIRA-SWITCH` 区块。
+1. 按官方说明运行 `npx @deepseek-ai/dsh web`，或从源码启动 DeepSeek Harness。
+2. 在 Kira Switch 顶部选择 **DeepSeek Harness**，导入角色卡并点击注入。
+3. 默认写入 `~/.dsh/AGENTS.md`；若设置了 `DSH_HOME`，则写入 `$DSH_HOME/AGENTS.md`。
+4. 重新创建或恢复 DeepSeek Harness 会话，让它加载更新后的用户全局指令。
 
-检测过程只判断 provider、模型、端点以及环境变量名称是否存在，不会返回、记录或修改 API Key。Hermes 的 `SOUL.md` 是主身份槽：已有 `SOUL.md` 的其他内容会保留；若原先没有该文件，首次创建会取代 Hermes 的默认后备身份，但 DeepSeek provider、模型、工具和运行时系统指令不受影响。具体加载顺序见 [Hermes 官方配置文档](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/configuration.md#context-files-soulmd-agentsmd)。
+DeepSeek Harness 会先加载用户全局 `$DSH_HOME/AGENTS.md`，再加载项目目录中的 `AGENTS.md`、`CLAUDE.md` 及本地 overlay。官方实现把这些内容作为持久的 user-role workspace instructions，并明确规定它们不能覆盖 system、developer 或用户直接指令。Kira Switch 只管理其中的 `KIRA-SWITCH` 区块，保留文件原有内容，并且不会修改 `.dsh/.env`、API Key、模型、插件或 Harness 设置。详见 [DeepSeek Harness agent-instructions 文档](https://github.com/deepseek-ai/deepseek-harness/tree/master/packages/context/agent-instructions)。
 
 OpenClaw 多智能体或自定义工作区需要在“设置 → 注入路径”中选择对应工作区的 `SOUL.md`。远程 Gateway 的文件位于远端机器，需要先挂载到本机或在远端运行工具。
 

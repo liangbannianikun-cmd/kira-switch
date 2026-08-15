@@ -1,48 +1,16 @@
 const os = require('node:os');
 const path = require('node:path');
-const fs = require('node:fs');
 
-const MAX_HERMES_CONFIG_BYTES = 512 * 1024;
-
-function readSmallText(filePath, fsImpl = fs) {
-  try {
-    const stats = fsImpl.statSync(filePath);
-    if (!stats.isFile() || stats.size > MAX_HERMES_CONFIG_BYTES) return '';
-    return fsImpl.readFileSync(filePath, 'utf8');
-  } catch (_) {
-    return '';
-  }
-}
-
-function inspectDeepSeekHermes(hermesHome, fsImpl = fs) {
-  const configPath = path.join(hermesHome, 'config.yaml');
-  const envPath = path.join(hermesHome, '.env');
-  const config = readSmallText(configPath, fsImpl);
-  const envFile = readSmallText(envPath, fsImpl);
-  const activeConfig = config
-    .split(/\r?\n/)
-    .filter((line) => !/^\s*#/.test(line))
-    .join('\n');
-
-  const providerConfigured = /(?:^|\n)\s*provider\s*:\s*["']?deepseek["']?\s*(?:#.*)?$/im.test(activeConfig);
-  const modelConfigured = /(?:^|\n)\s*(?:default|model)\s*:\s*["']?[^\n#]*deepseek[^\n#]*/im.test(activeConfig);
-  const endpointConfigured = /https?:\/\/api\.deepseek\.com(?:\/v1)?\b/i.test(activeConfig);
-  const apiKeyDeclared = /(?:^|\n)\s*DEEPSEEK_API_KEY\s*=/m.test(envFile);
-
-  return {
-    configured: providerConfigured || modelConfigured || endpointConfigured || apiKeyDeclared,
-    providerConfigured,
-    modelConfigured,
-    endpointConfigured,
-    apiKeyDeclared,
-    configExists: Boolean(config),
-    soulPath: path.join(hermesHome, 'SOUL.md')
-  };
+function resolveHomeOverride(value, home, fallbackName) {
+  if (typeof value !== 'string' || !value.trim()) return path.join(home, fallbackName);
+  const expanded = value.trim().replace(/^~(?=$|[\\/])/, home);
+  return path.resolve(expanded);
 }
 
 function createAdapters(home = os.homedir(), env = process.env) {
   const codexHome = env.CODEX_HOME || path.join(home, '.codex');
   const hermesHome = env.HERMES_HOME || path.join(home, '.hermes');
+  const dshHome = resolveHomeOverride(env.DSH_HOME, home, '.dsh');
 
   return [
     {
@@ -68,16 +36,27 @@ function createAdapters(home = os.homedir(), env = process.env) {
       note: '在下一次会话启动时加载；现有会话可用 /memory 检查。'
     },
     {
+      id: 'dsh',
+      name: 'DeepSeek Harness',
+      shortName: 'DS',
+      accent: '#4d6bfe',
+      path: path.join(dshHome, 'AGENTS.md'),
+      detectPath: dshHome,
+      command: 'dsh',
+      fileLabel: '用户全局 AGENTS.md',
+      scope: '所有 DeepSeek Harness workspace',
+      note: '写入 $DSH_HOME/AGENTS.md；DeepSeek Harness 会在项目指令之前加载这份用户全局指令。'
+    },
+    {
       id: 'hermes',
-      name: 'Hermes / DeepSeek',
+      name: 'Hermes',
       shortName: 'HE',
       accent: '#8357d9',
       path: path.join(hermesHome, 'SOUL.md'),
-      hermesHome,
       command: 'hermes',
       fileLabel: '主身份 SOUL.md',
-      scope: 'Hermes 全局身份（含 DeepSeek provider）',
-      note: '兼容 DeepSeek 官方教程中的 Hermes Agent；只注入 SOUL.md，不修改模型、API Key 或工具配置。'
+      scope: 'Hermes 全局身份',
+      note: 'SOUL.md 位于系统提示词的主身份槽，建议保持标准长度。'
     },
     {
       id: 'openclaw',
@@ -104,4 +83,4 @@ function createAdapters(home = os.homedir(), env = process.env) {
   ];
 }
 
-module.exports = { createAdapters, inspectDeepSeekHermes };
+module.exports = { createAdapters };

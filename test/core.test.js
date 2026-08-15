@@ -1,11 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const { normalizeCard, compilePersona, parsePngCard, readPngTextChunks } = require('../src/lib/card');
 const { applyManagedBlock, disableManagedBlock, hasManagedBlock, stripManagedBlock } = require('../src/lib/injector');
-const { createAdapters, inspectDeepSeekHermes } = require('../src/lib/adapters');
+const { createAdapters } = require('../src/lib/adapters');
 
 function pngChunk(type, data) {
   const length = Buffer.alloc(4);
@@ -110,39 +108,22 @@ test('replaces legacy Persona Switch blocks during migration', () => {
   assert.match(migrated, /激活角色：新角色/);
 });
 
-test('creates official default paths for all five targets', () => {
+test('creates official default paths for all six targets', () => {
   const home = path.join('C:', 'Users', 'tester');
   const adapters = createAdapters(home, {});
-  assert.deepEqual(adapters.map((item) => item.id), ['codex', 'claude', 'hermes', 'openclaw', 'opencode']);
+  assert.deepEqual(adapters.map((item) => item.id), ['codex', 'claude', 'dsh', 'hermes', 'openclaw', 'opencode']);
   assert.match(adapters.find((item) => item.id === 'codex').path, /\.codex[\\/]AGENTS\.md$/);
   assert.match(adapters.find((item) => item.id === 'claude').path, /\.claude[\\/]CLAUDE\.md$/);
+  assert.match(adapters.find((item) => item.id === 'dsh').path, /\.dsh[\\/]AGENTS\.md$/);
   assert.match(adapters.find((item) => item.id === 'hermes').path, /\.hermes[\\/]SOUL\.md$/);
   assert.match(adapters.find((item) => item.id === 'openclaw').path, /\.openclaw[\\/]workspace[\\/]SOUL\.md$/);
   assert.match(adapters.find((item) => item.id === 'opencode').path, /\.config[\\/]opencode[\\/]AGENTS\.md$/);
 });
 
-test('detects DeepSeek Hermes without exposing or changing the API key', () => {
-  const hermesHome = fs.mkdtempSync(path.join(os.tmpdir(), 'kira-switch-hermes-'));
-  fs.writeFileSync(path.join(hermesHome, 'config.yaml'), [
-    'model:',
-    '  default: deepseek-v4-pro',
-    '  provider: deepseek',
-    '  base_url: https://api.deepseek.com'
-  ].join('\n'), 'utf8');
-  fs.writeFileSync(path.join(hermesHome, '.env'), 'DEEPSEEK_API_KEY=test-secret-never-return\n', 'utf8');
-
-  const result = inspectDeepSeekHermes(hermesHome);
-  assert.equal(result.configured, true);
-  assert.equal(result.providerConfigured, true);
-  assert.equal(result.modelConfigured, true);
-  assert.equal(result.endpointConfigured, true);
-  assert.equal(result.apiKeyDeclared, true);
-  assert.equal(JSON.stringify(result).includes('test-secret-never-return'), false);
-  assert.equal(fs.readFileSync(path.join(hermesHome, '.env'), 'utf8'), 'DEEPSEEK_API_KEY=test-secret-never-return\n');
-});
-
-test('ignores commented DeepSeek examples in Hermes config', () => {
-  const hermesHome = fs.mkdtempSync(path.join(os.tmpdir(), 'kira-switch-hermes-comments-'));
-  fs.writeFileSync(path.join(hermesHome, 'config.yaml'), '# provider: deepseek\nmodel:\n  provider: nous\n', 'utf8');
-  assert.equal(inspectDeepSeekHermes(hermesHome).configured, false);
+test('honors DeepSeek Harness DSH_HOME including tilde paths', () => {
+  const home = path.join('C:', 'Users', 'tester');
+  const custom = createAdapters(home, { DSH_HOME: '~\\deepseek-home' }).find((item) => item.id === 'dsh');
+  assert.equal(custom.path, path.resolve(home, 'deepseek-home', 'AGENTS.md'));
+  const blank = createAdapters(home, { DSH_HOME: '   ' }).find((item) => item.id === 'dsh');
+  assert.match(blank.path, /\.dsh[\\/]AGENTS\.md$/);
 });

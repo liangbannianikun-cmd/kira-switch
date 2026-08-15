@@ -118,14 +118,13 @@ function renderTargetStrip() {
     : item.detected
       ? '<span class="badge success">已检测</span>'
       : '<span class="badge muted">未检测</span>';
-  const providerStatus = item.deepseekConfigured ? '<span class="badge accent">DeepSeek provider</span>' : '';
   ui.targetEyebrow.textContent = '当前目标';
   ui.pageTitle.textContent = `${item.name} 角色卡`;
   ui.pageSubtitle.textContent = item.note;
   ui.targetStrip.innerHTML = `
     <span class="target-logo" style="--client-accent:${item.accent}">${escapeHtml(item.shortName)}</span>
     <div class="target-meta">
-      <strong>${escapeHtml(item.name)} ${status} ${providerStatus}</strong>
+      <strong>${escapeHtml(item.name)} ${status}</strong>
       <p>${escapeHtml(item.fileLabel)} · ${escapeHtml(item.path)}</p>
     </div>
     <div class="target-actions">
@@ -154,7 +153,7 @@ function renderCardList() {
     ui.cardList.innerHTML = `<div class="empty-state">
       <div class="empty-visual"><span></span><span></span></div>
       <h3>${isEmptyLibrary ? '还没有角色卡' : '没有匹配结果'}</h3>
-      <p>${isEmptyLibrary ? '导入 SillyTavern JSON、PNG 或 CHARX 角色卡，即可统一注入到五个客户端。' : '试试调整搜索词或切换回“全部”。'}</p>
+      <p>${isEmptyLibrary ? '导入 SillyTavern JSON、PNG 或 CHARX 角色卡，即可统一注入到六个目标。' : '试试调整搜索词或切换回“全部”。'}</p>
       ${isEmptyLibrary ? '<button class="primary-button" data-empty-import>导入第一张角色卡</button>' : ''}
     </div>`;
     ui.cardList.querySelector('[data-empty-import]')?.addEventListener('click', openImportModal);
